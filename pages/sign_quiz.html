@@ -109,7 +109,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
   </div>
   <div class="side">
     <div class="sec"><div class="sl">// 현재 단어</div><div class="wb"><span class="w" id="wD">—</span><span class="ws" id="wDs">파일 로드 대기</span></div></div>
-    <div class="sec"><div class="sl">// 데이터</div><label class="ub"><input type="file" accept=".json" id="fI">＋ 3D JSON 업로드</label><button class="ub" onclick="loadS()">▶ 샘플 로드</button></div>
+    <div class="sec"><div class="sl">// 단어 선택</div>
+      <select id="wordSel" onchange="loadFromCloud(this.value)" style="width:100%;padding:8px 10px;background:rgba(18,20,31,.8);border:1px solid var(--bd2);border-radius:var(--r);color:var(--tx);font-family:'JetBrains Mono',monospace;font-size:.7rem;cursor:pointer;outline:none;margin-bottom:6px">
+        <option value="">-- 단어 선택 --</option>
+      </select>
+      <div id="loadStatus" style="text-align:center;font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--dm);padding:4px 0"></div>
+    </div>
     <div class="sec"><div class="sl">// 재생</div><div class="cr"><button class="cb" onclick="step(-1)">◀</button><button class="pb" id="pBtn" onclick="togP()">▶ PLAY</button><button class="cb" onclick="step(1)">▶</button></div><div class="sw"><div class="si"><span>프레임</span><span id="sV">0</span></div><input type="range" id="sL" min="0" value="0" oninput="onSl(this.value)"></div><div class="spr"><button class="spb" onclick="setSp(.25,this)">0.25×</button><button class="spb" onclick="setSp(.5,this)">0.5×</button><button class="spb on" onclick="setSp(1,this)">1×</button><button class="spb" onclick="setSp(2,this)">2×</button></div></div>
     <div class="sec"><div class="sl">// 효과</div><div class="fxl">
       <div class="fxr"><span>깊이 음영</span><button class="tg on" onclick="togFx('depth',this)"></button></div>
@@ -652,8 +657,43 @@ function retryQuiz(){
 document.getElementById('qInput').addEventListener('keydown',e=>{
   if(e.key==='Enter')submitQuiz();
 });
-document.getElementById('fI').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{initD(JSON.parse(ev.target.result))}catch{alert('JSON 오류')}};r.readAsText(f);});
-function loadS(){fetch('./processed_avatars_3d_WORD0001.json').then(r=>{if(!r.ok)throw 0;return r.json()}).then(initD).catch(()=>alert('JSON을 같은 폴더에 넣어주세요'));}
+// ═══════════════════════════════════════
+//  Google Cloud 데이터 로드
+// ═══════════════════════════════════════
+const GCS_BASE = 'https://storage.googleapis.com/sign-language-data-2026/processed/avatars_3d';
+const TOTAL_WORDS = 50; // 현재 사용할 단어 수 (필요시 늘리기)
+
+// 단어 목록 드롭다운 채우기
+(function buildWordList(){
+  const sel = document.getElementById('wordSel');
+  for(let i = 1; i <= TOTAL_WORDS; i++){
+    const id = String(i).padStart(4, '0');
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = `WORD${id}`;
+    sel.appendChild(opt);
+  }
+})();
+
+// Google Cloud에서 단어 JSON 로드
+function loadFromCloud(wordId){
+  if(!wordId) return;
+  const status = document.getElementById('loadStatus');
+  status.textContent = '⏳ 로딩 중...';
+  status.style.color = 'var(--dm)';
+  const url = `${GCS_BASE}/WORD${wordId}.json`;
+  fetch(url)
+    .then(r => { if(!r.ok) throw new Error('not found'); return r.json(); })
+    .then(data => {
+      initD(data);
+      status.textContent = `✓ WORD${wordId} 로드 완료`;
+      status.style.color = 'var(--ps)';
+    })
+    .catch(() => {
+      status.textContent = `✗ WORD${wordId} 로드 실패`;
+      status.style.color = 'var(--rh)';
+    });
+}
 
 // 코어 애니메이션 루프
 (function anim(){requestAnimationFrame(anim);if(D&&!pl){animT+=.02;if(FX.core)draw(fr);}})();
