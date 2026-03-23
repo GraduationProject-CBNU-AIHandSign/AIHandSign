@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SORI — 수어 로봇 아바타</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#06080e;--sf:#0b0d15;--bd:#171a2a;--bd2:#222540;--ac:#5c9cf5;--ac2:#8b5cf6;--ps:#3cffc0;--rh:#f55c8a;--tx:#dde2f0;--dm:#4a4e70;--r:8px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--tx);font-family:'Outfit',sans-serif;height:100vh;display:grid;grid-template-rows:50px 1fr;overflow:hidden}
+header{display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:var(--sf);border-bottom:1px solid var(--bd)}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-i{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff}
+.logo-t{font-family:'JetBrains Mono',monospace;font-size:.85rem;font-weight:500;letter-spacing:.1em}
+.logo-t span{color:var(--dm);font-weight:400}
+.tags{display:flex;gap:6px}
+.tag{font-family:'JetBrains Mono',monospace;font-size:.56rem;padding:3px 10px;border-radius:20px;border:1px solid var(--bd2);color:var(--dm)}.tag.ok{border-color:rgba(60,255,192,.25);color:var(--ps)}
+.wrap{display:grid;grid-template-columns:1fr 250px;overflow:hidden}
+.stage{position:relative;overflow:hidden;background:var(--bg)}
+canvas{display:block;width:100%!important;height:100%!important}
+.otl{position:absolute;top:16px;left:20px;pointer-events:none}
+.otl h2{font-size:2rem;font-weight:700;color:#fff;text-shadow:0 0 30px rgba(92,156,245,.3)}
+.otl p{font-family:'JetBrains Mono',monospace;font-size:.55rem;color:var(--dm);margin-top:3px}
+.otr{position:absolute;top:16px;right:16px;font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--dm);background:rgba(11,13,21,.85);border:1px solid var(--bd);padding:3px 10px;border-radius:6px;pointer-events:none;backdrop-filter:blur(6px)}
+.vm{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:4px;background:rgba(11,13,21,.9);border:1px solid var(--bd);border-radius:8px;padding:3px;backdrop-filter:blur(10px)}
+.vmb{padding:5px 14px;background:none;border:none;border-radius:6px;color:var(--dm);font-family:'JetBrains Mono',monospace;font-size:.58rem;cursor:pointer;transition:.2s}.vmb:hover{color:var(--tx)}.vmb.on{background:var(--bd2);color:var(--tx)}
+.prg{position:absolute;bottom:0;left:0;height:2px;background:linear-gradient(90deg,var(--ac),var(--ac2));transition:width .1s;opacity:.7}
+.side{background:var(--sf);border-left:1px solid var(--bd);display:flex;flex-direction:column;overflow-y:auto;scrollbar-width:none}.side::-webkit-scrollbar{display:none}
+.sec{padding:14px;border-bottom:1px solid var(--bd)}
+.sl{font-family:'JetBrains Mono',monospace;font-size:.5rem;letter-spacing:.15em;color:var(--dm);text-transform:uppercase;margin-bottom:10px}
+.ub{display:block;width:100%;padding:9px;background:rgba(18,20,31,.8);border:1px dashed var(--bd2);border-radius:var(--r);color:var(--dm);cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.58rem;text-align:center;transition:.2s;margin-bottom:5px}.ub:hover{border-color:var(--ac);color:var(--ac)}.ub input{display:none}
+.cr{display:flex;gap:5px;align-items:center;justify-content:center;margin-bottom:12px}
+.cb{width:30px;height:30px;background:rgba(18,20,31,.8);border:1px solid var(--bd2);border-radius:var(--r);color:var(--dm);cursor:pointer;font-size:.7rem;transition:.15s;display:flex;align-items:center;justify-content:center}.cb:hover{border-color:var(--ac);color:var(--ac)}
+.pb{width:78px;height:30px;background:linear-gradient(135deg,var(--ac),var(--ac2));border:none;border-radius:var(--r);color:#fff;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.65rem;font-weight:500;transition:.15s;display:flex;align-items:center;justify-content:center;gap:4px}.pb:hover{opacity:.88}.pb.pause{background:linear-gradient(135deg,var(--rh),#d43f6a)}
+.sw{display:flex;flex-direction:column;gap:4px}
+.si{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:.52rem;color:var(--dm)}
+input[type=range]{width:100%;-webkit-appearance:none;height:2px;background:var(--bd2);border-radius:2px;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;background:var(--ac);border-radius:50%;border:2px solid var(--bg);box-shadow:0 0 6px rgba(92,156,245,.5)}
+.spr{display:flex;gap:3px;margin-top:10px}
+.spb{flex:1;padding:4px 0;background:transparent;border:1px solid var(--bd);border-radius:5px;color:var(--dm);cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.54rem;transition:.15s}.spb:hover,.spb.on{border-color:var(--ps);color:var(--ps)}
+.wb{text-align:center;padding:10px 0}
+.wb .w{font-size:1.7rem;font-weight:700;color:var(--ac);display:block}
+.wb .ws{font-size:.58rem;color:var(--dm);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.fxl{display:flex;flex-direction:column;gap:8px}.fxr{display:flex;align-items:center;justify-content:space-between;font-size:.72rem}
+.tg{width:32px;height:17px;background:var(--bd2);border-radius:9px;position:relative;cursor:pointer;border:none;transition:.2s;flex-shrink:0}.tg::after{content:'';position:absolute;width:11px;height:11px;background:var(--dm);border-radius:50%;top:3px;left:3px;transition:.2s}.tg.on{background:rgba(92,156,245,.15)}.tg.on::after{left:18px;background:var(--ac);box-shadow:0 0 5px var(--ac)}
+
+/* ── 퀴즈 ── */
+.quiz-box{display:flex;flex-direction:column;gap:8px}
+
+/* 결과 오버레이 */
+.result-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;z-index:5;opacity:0;transition:opacity .3s}
+.result-overlay.show{opacity:1}
+.result-icon{font-size:5rem;line-height:1}
+.result-text{font-size:1.8rem;font-weight:700;margin-top:8px;font-family:'JetBrains Mono',monospace;letter-spacing:.05em}
+.result-answer{font-size:1rem;margin-top:4px;color:var(--dm)}
+.result-overlay.correct .result-icon{text-shadow:0 0 60px rgba(60,255,192,.5)}
+.result-overlay.correct .result-text{color:var(--ps)}
+.result-overlay.wrong .result-icon{text-shadow:0 0 60px rgba(245,92,138,.5)}
+.result-overlay.wrong .result-text{color:var(--rh)}
+
+/* 퀴즈 */
+.quiz-box{display:flex;flex-direction:column;gap:10px}
+.quiz-input{width:100%;padding:10px 12px;background:rgba(18,20,31,.9);border:1px solid var(--bd2);border-radius:var(--r);color:var(--tx);font-family:'Outfit',sans-serif;font-size:.9rem;outline:none;text-align:center;transition:border-color .2s}
+.quiz-input:focus{border-color:var(--ac)}
+.quiz-input::placeholder{color:var(--dm);font-size:.8rem}
+.quiz-input.shake{animation:shake .4s ease}
+.quiz-submit{width:100%;padding:9px;background:linear-gradient(135deg,var(--ac),var(--ac2));border:none;border-radius:var(--r);color:#fff;cursor:pointer;font-family:'Outfit',sans-serif;font-size:.85rem;font-weight:600;transition:.15s;letter-spacing:.02em}
+.quiz-submit:hover{opacity:.88}
+.quiz-submit:disabled{opacity:.4;cursor:default}
+.quiz-result{text-align:center;padding:16px 10px;border-radius:var(--r);font-size:.95rem;font-weight:600;display:none;animation:popIn .35s ease}
+.quiz-result.correct{display:block;background:rgba(60,255,192,.08);border:1px solid rgba(60,255,192,.25);color:var(--ps)}
+.quiz-result.wrong{display:block;background:rgba(245,92,138,.08);border:1px solid rgba(245,92,138,.25);color:var(--rh)}
+.quiz-result.reveal{display:block;background:rgba(255,208,80,.06);border:1px solid rgba(255,208,80,.25);color:#ffd050}
+.quiz-result .emoji{font-size:1.8rem;display:block;margin-bottom:4px}
+.quiz-result .answer{font-size:.7rem;color:var(--dm);margin-top:6px;font-weight:400}
+.quiz-hint{text-align:center;font-size:.65rem;color:var(--dm);font-family:'JetBrains Mono',monospace}
+.quiz-retry{width:100%;padding:8px;background:transparent;border:1px solid var(--bd2);border-radius:var(--r);color:var(--dm);cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.6rem;transition:.15s;margin-top:4px}
+.quiz-retry:hover{border-color:var(--ac);color:var(--ac)}
+.quiz-replay{width:100%;padding:8px;background:transparent;border:1px solid rgba(92,156,245,.35);border-radius:var(--r);color:var(--ac);cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:.6rem;transition:.15s}
+.quiz-replay:hover{background:rgba(92,156,245,.08);border-color:var(--ac)}
+.quiz-score{display:flex;justify-content:center;gap:16px;font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--dm);padding:6px 0}
+.quiz-score .s-ok{color:var(--ps)}.quiz-score .s-no{color:var(--rh)}
+/* 시도 횟수 표시 */
+.attempt-dots{display:flex;gap:5px;justify-content:center;align-items:center;padding:4px 0}
+.attempt-dot{width:8px;height:8px;border-radius:50%;border:1px solid var(--bd2);background:transparent;transition:.3s}
+.attempt-dot.used{background:var(--rh);border-color:var(--rh);box-shadow:0 0 5px rgba(245,92,138,.4)}
+.attempt-dot.correct{background:var(--ps);border-color:var(--ps);box-shadow:0 0 5px rgba(60,255,192,.4)}
+.attempt-label{font-family:'JetBrains Mono',monospace;font-size:.52rem;color:var(--dm)}
+@keyframes popIn{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><div class="logo-i">手</div><div class="logo-t">SORI <span>// 수어 로봇</span></div></div>
+  <div class="tags"><div class="tag ok" id="tS">대기 중</div><div class="tag" id="tF">F:00</div></div>
+</header>
+<div class="wrap">
+  <div class="stage">
+    <canvas id="c"></canvas>
+    <div class="otl"><h2 id="wM">—</h2><p id="wSub">JSON 파일을 로드하세요</p></div>
+    <div class="otr" id="fD">00/00</div>
+    <div class="vm">
+      <button class="vmb on" onclick="setV('robot',this)">로봇</button>
+      <button class="vmb" onclick="setV('skeleton',this)">스켈레톤</button>
+    </div>
+    <div class="prg" id="pB"></div>
+  </div>
+  <div class="side">
+    <div class="sec"><div class="sl">// 현재 단어</div><div class="wb"><span class="w" id="wD">—</span><span class="ws" id="wDs">파일 로드 대기</span></div></div>
+    <div class="sec"><div class="sl">// 데이터</div><label class="ub"><input type="file" accept=".json" id="fI">＋ 3D JSON 업로드</label><button class="ub" onclick="loadS()">▶ 샘플 로드</button></div>
+    <div class="sec"><div class="sl">// 재생</div><div class="cr"><button class="cb" onclick="step(-1)">◀</button><button class="pb" id="pBtn" onclick="togP()">▶ PLAY</button><button class="cb" onclick="step(1)">▶</button></div><div class="sw"><div class="si"><span>프레임</span><span id="sV">0</span></div><input type="range" id="sL" min="0" value="0" oninput="onSl(this.value)"></div><div class="spr"><button class="spb" onclick="setSp(.25,this)">0.25×</button><button class="spb" onclick="setSp(.5,this)">0.5×</button><button class="spb on" onclick="setSp(1,this)">1×</button><button class="spb" onclick="setSp(2,this)">2×</button></div></div>
+    <div class="sec"><div class="sl">// 효과</div><div class="fxl">
+      <div class="fxr"><span>깊이 음영</span><button class="tg on" onclick="togFx('depth',this)"></button></div>
+      <div class="fxr"><span>코어 발광</span><button class="tg on" onclick="togFx('core',this)"></button></div>
+      <div class="fxr"><span>모션 트레일</span><button class="tg on" onclick="togFx('trail',this)"></button></div>
+      <div class="fxr"><span>관절 번호</span><button class="tg" onclick="togFx('num',this)"></button></div>
+    </div></div>
+
+    <div class="sec"><div class="sl">// 퀴즈</div>
+      <div class="quiz-box">
+        <p class="quiz-hint" id="qHint">동작을 관찰하고 단어를 맞춰보세요</p>
+        <div class="attempt-dots" id="qDots">
+          <span class="attempt-label">시도</span>
+          <span class="attempt-dot" id="qD1"></span>
+          <span class="attempt-dot" id="qD2"></span>
+          <span class="attempt-dot" id="qD3"></span>
+        </div>
+        <div class="quiz-score"><span>정답 <span class="s-ok" id="qOk">0</span></span><span>오답 <span class="s-no" id="qNo">0</span></span></div>
+        <button class="quiz-replay" id="qReplay" onclick="replayAnim()" disabled>↺ 동작 다시보기</button>
+        <input class="quiz-input" id="qInput" type="text" placeholder="이 동작은 무슨 단어?" maxlength="20" disabled>
+        <button class="quiz-submit" id="qBtn" onclick="submitQuiz()" disabled>정답 확인</button>
+        <div class="quiz-result" id="qResult"></div>
+        <button class="quiz-retry" id="qRetry" onclick="retryQuiz()" style="display:none">🔄 다시 풀기</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+// ═══════════════════════════════════════
+//  SORI Robot Avatar Viewer (3D Data)
+// ═══════════════════════════════════════
+// 좌표: X(좌-/우+) Y(위-/아래+) Z(가까움=작음)
+// Hand 교차: left_hand≈pose[7], right_hand≈pose[4]
+
+const HC=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[0,9],[9,10],[10,11],[11,12],[0,13],[13,14],[14,15],[15,16],[0,17],[17,18],[18,19],[19,20],[5,9],[9,13],[13,17]];
+const PC=[[2,5],[2,3],[3,4],[5,6],[6,7],[2,8],[5,8]];
+const cv=document.getElementById('c'),g=cv.getContext('2d');
+let D=null,fr=0,pl=false,tm=null,sp=1,md='robot',W,H;
+const FX={depth:true,core:true,trail:true,num:false};
+const trail=[],TL=6;
+let zMin=2.1,zMax=2.5,zMid=2.3,sc=1,oX=0,oY=0;
+let animT=0;
+
+// ── 로봇 컬러 ──
+const R={
+  white:'#e8eaf0',   // 머리/손
+  whiteHi:'#f5f6fa',
+  whiteLo:'#c8ccd8',
+  body:'#3a7ecc',    // 몸통 파랑
+  bodyHi:'#5a9ee8',
+  bodyLo:'#2a5e9c',
+  bodyDk:'#1e4878',
+  gray:'#8890a8',    // 관절
+  grayHi:'#a0a8c0',
+  grayLo:'#606880',
+  grayDk:'#484e60',
+  core:'#4af0d0',    // 코어 발광
+  coreGlow:'rgba(74,240,208,.3)',
+  accent:'#5cc8f5',  // 손목 밴드
+};
+
+function resize(){const p=cv.parentElement;W=cv.width=p.clientWidth;H=cv.height=p.clientHeight;if(D){calc();draw(fr);}else drawBg();}
+window.addEventListener('resize',resize);resize();
+
+function calc(){
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;zMin=1e9;zMax=-1e9;
+  for(const f of D.frames)for(const p of[...f.pose,...f.left_hand,...f.right_hand,...f.face]){
+    if(p[0]<x0)x0=p[0];if(p[0]>x1)x1=p[0];if(p[1]<y0)y0=p[1];if(p[1]>y1)y1=p[1];
+    if(p[2]<zMin)zMin=p[2];if(p[2]>zMax)zMax=p[2];}
+  zMid=(zMin+zMax)/2;const pd=80;
+  sc=Math.min((W-pd*2)/(x1-x0),(H-pd*2)/(y1-y0));
+  oX=W/2-((x0+x1)/2)*sc;oY=H/2-((y0+y1)/2)*sc;
+}
+
+function pj(pt){
+  const zN=(pt[2]-zMid)/(zMax-zMin+.001),ps=1-zN*.25;
+  return{x:pt[0]*sc*ps+oX,y:pt[1]*sc*ps+oY,z:pt[2],s:ps};
+}
+function zB(z){if(!FX.depth)return .9;return .55+(1-(z-zMin)/(zMax-zMin+.001))*.45;}
+function zS(z){return .88+(1-(z-zMin)/(zMax-zMin+.001))*.24;}
+function d3(a,b){return Math.sqrt((a[0]-b[0])**2+(a[1]-b[1])**2+(a[2]-b[2])**2);}
+function m3(a,b){return[(a[0]+b[0])/2,(a[1]+b[1])/2,(a[2]+b[2])/2];}
+function l3(a,b,t){return[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];}
+function h2r(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
+
+// 밝기 적용 색상
+function col(hex,z){const b=zB(z),[r,gg,bl]=h2r(hex);return`rgb(${Math.round(r*b)},${Math.round(gg*b)},${Math.round(bl*b)})`;}
+
+function draw(idx){
+  g.clearRect(0,0,W,H);drawBg();if(!D||idx<0)return;
+  animT+=0.03;
+  const f=D.frames[idx];
+  if(md==='robot'){
+    if(FX.trail&&trail.length)drawTr();
+    drawRobot(f);
+  }else{
+    if(FX.trail&&trail.length)drawTr();
+    drawSkel(f);
+  }
+  updUI(idx);
+}
+
+function drawBg(){
+  // 배경 그리드
+  g.strokeStyle='rgba(22,25,42,.4)';g.lineWidth=.5;
+  for(let x=0;x<W;x+=55){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke();}
+  for(let y=0;y<H;y+=55){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();}
+  // 비네팅
+  const v=g.createRadialGradient(W/2,H*.38,0,W/2,H*.38,Math.max(W,H)*.65);
+  v.addColorStop(0,'rgba(15,25,50,.15)');v.addColorStop(1,'rgba(6,8,14,.7)');g.fillStyle=v;g.fillRect(0,0,W,H);
+}
+
+// ═══════════════════════════════════════
+//  로봇 렌더링
+// ═══════════════════════════════════════
+function drawRobot(f){
+  const p=f.pose;
+  const hd=p[0],ls=p[2],rs=p[5],le=p[3],re=p[6],lw=p[4],rw=p[7],hp=p[8];
+  if(!hd||!ls||!rs)return;
+  const lH=f.right_hand,rH=f.left_hand; // 교차
+
+  // Z 정렬
+  const parts=[];
+  // 몸통
+  parts.push({z:(ls[2]+rs[2])/2+.01,fn:()=>drawBody(ls,rs,hp,hd)});
+  // 팔
+  if(le&&lw)parts.push({z:Math.min(ls[2],le[2],lw[2]),fn:()=>drawRobotArm(ls,le,lw)});
+  if(re&&rw)parts.push({z:Math.min(rs[2],re[2],rw[2]),fn:()=>drawRobotArm(rs,re,rw)});
+  // 손
+  if(lH&&lH.length>=21)parts.push({z:lH[0][2]-.01,fn:()=>drawRobotHand(lH,'#5c9cf5')});
+  if(rH&&rH.length>=21)parts.push({z:rH[0][2]-.01,fn:()=>drawRobotHand(rH,'#f55c8a')});
+  // 머리
+  parts.push({z:hd[2]-.02,fn:()=>drawRobotHead(hd,ls,rs,f.face)});
+
+  parts.sort((a,b)=>b.z-a.z);
+  parts.forEach(p=>p.fn());
+}
+
+// ── 로봇 머리 ──
+function drawRobotHead(hd,ls,rs,face){
+  const hp=pj(hd),shD=d3(ls,rs);
+  const rs2=shD*.32*sc*zS(hd[2]),b=zB(hd[2]);
+
+  // 목 (실린더)
+  const neckBot=pj(m3(ls,rs));
+  const nw=rs2*.22;
+  g.beginPath();
+  g.moveTo(hp.x-nw,hp.y+rs2*.6);g.lineTo(hp.x-nw,neckBot.y);
+  g.lineTo(hp.x+nw,neckBot.y);g.lineTo(hp.x+nw,hp.y+rs2*.6);g.closePath();
+  const ng=g.createLinearGradient(hp.x-nw,0,hp.x+nw,0);
+  ng.addColorStop(0,col(R.grayDk,hd[2]));ng.addColorStop(.3,col(R.gray,hd[2]));
+  ng.addColorStop(.5,col(R.grayHi,hd[2]));ng.addColorStop(.7,col(R.gray,hd[2]));
+  ng.addColorStop(1,col(R.grayDk,hd[2]));g.fillStyle=ng;g.fill();
+
+  // 머리 (둥근 직사각형)
+  const hw=rs2*.85,hh=rs2*.95;
+  const headR=rs2*.35; // 둥글기
+  roundRect(hp.x-hw,hp.y-hh,hw*2,hh*2,headR);
+  const hg=g.createRadialGradient(hp.x-rs2*.15,hp.y-rs2*.2,rs2*.1,hp.x,hp.y,rs2*1.1);
+  hg.addColorStop(0,col(R.whiteHi,hd[2]));hg.addColorStop(.5,col(R.white,hd[2]));
+  hg.addColorStop(.9,col(R.whiteLo,hd[2]));g.fillStyle=hg;g.fill();
+
+}
+
+function roundRect(x,y,w,h,r){
+  g.beginPath();g.moveTo(x+r,y);g.lineTo(x+w-r,y);g.quadraticCurveTo(x+w,y,x+w,y+r);
+  g.lineTo(x+w,y+h-r);g.quadraticCurveTo(x+w,y+h,x+w-r,y+h);g.lineTo(x+r,y+h);
+  g.quadraticCurveTo(x,y+h,x,y+h-r);g.lineTo(x,y+r);g.quadraticCurveTo(x,y,x+r,y);g.closePath();
+}
+
+// ── 로봇 몸통 ──
+function drawBody(ls,rs,hp,hd){
+  const lp=pj(ls),rp=pj(rs),hdp=pj(hd);
+  const bz=(ls[2]+rs[2])/2,b=zB(bz);
+  let hcp;if(hp)hcp=pj(hp);else hcp=pj([(ls[0]+rs[0])/2,ls[1]+.5,bz+.02]);
+
+  const cx=(lp.x+rp.x)/2,shW=Math.abs(rp.x-lp.x);
+  const topY=(lp.y+rp.y)/2;
+  const botY=hcp.y;
+  const bodyW=shW*.55,hipW=shW*.38;
+
+  // 몸통 (둥근 사다리꼴)
+  const br=shW*.12;
+  g.beginPath();
+  g.moveTo(cx-bodyW+br,topY);
+  g.lineTo(cx+bodyW-br,topY);
+  g.quadraticCurveTo(cx+bodyW,topY,cx+bodyW,topY+br);
+  g.lineTo(cx+hipW,botY-br);
+  g.quadraticCurveTo(cx+hipW,botY,cx+hipW-br,botY);
+  g.lineTo(cx-hipW+br,botY);
+  g.quadraticCurveTo(cx-hipW,botY,cx-hipW,botY-br);
+  g.lineTo(cx-bodyW,topY+br);
+  g.quadraticCurveTo(cx-bodyW,topY,cx-bodyW+br,topY);
+  g.closePath();
+
+  const bg=g.createLinearGradient(cx-bodyW,topY,cx+bodyW,botY);
+  bg.addColorStop(0,col(R.bodyHi,bz));bg.addColorStop(.4,col(R.body,bz));
+  bg.addColorStop(.8,col(R.bodyLo,bz));bg.addColorStop(1,col(R.bodyDk,bz));
+  g.fillStyle=bg;g.fill();
+
+  // 측면 음영
+  const slg=g.createLinearGradient(cx-bodyW,0,cx,0);
+  slg.addColorStop(0,'rgba(0,0,0,.2)');slg.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=slg;g.fill();
+  const srg=g.createLinearGradient(cx+bodyW,0,cx,0);
+  srg.addColorStop(0,'rgba(0,0,0,.2)');srg.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=srg;g.fill();
+
+  // 가슴 라인
+  g.beginPath();
+  g.moveTo(cx-bodyW*.7,topY+shW*.15);g.lineTo(cx+bodyW*.7,topY+shW*.15);
+  g.strokeStyle=`rgba(255,255,255,${.08*b})`;g.lineWidth=1;g.stroke();
+
+  // 코어 (발광 원)
+  if(FX.core){
+    const coreY=topY+(botY-topY)*.4;
+    const coreR=shW*.12;
+    const pulse=Math.sin(animT*2)*.15+.85;
+
+    // 외부 글로우
+    const cg=g.createRadialGradient(cx,coreY,0,cx,coreY,coreR*3);
+    cg.addColorStop(0,`rgba(74,240,208,${.15*b*pulse})`);cg.addColorStop(1,'rgba(74,240,208,0)');
+    g.fillStyle=cg;g.beginPath();g.arc(cx,coreY,coreR*3,0,Math.PI*2);g.fill();
+
+    // 코어 링
+    g.beginPath();g.arc(cx,coreY,coreR,0,Math.PI*2);
+    g.strokeStyle=`rgba(74,240,208,${.5*b*pulse})`;g.lineWidth=2;g.stroke();
+
+    // 코어 내부
+    g.beginPath();g.arc(cx,coreY,coreR*.6,0,Math.PI*2);
+    const ig=g.createRadialGradient(cx,coreY,0,cx,coreY,coreR*.6);
+    ig.addColorStop(0,`rgba(180,255,240,${.9*b*pulse})`);ig.addColorStop(.5,`rgba(74,240,208,${.6*b*pulse})`);
+    ig.addColorStop(1,`rgba(74,240,208,${.2*b*pulse})`);
+    g.fillStyle=ig;g.fill();
+  }
+
+  // 어깨 관절
+  [lp,rp].forEach(sp=>{
+    const jr=shW*.065;
+    const jg=g.createRadialGradient(sp.x-jr*.2,sp.y-jr*.2,0,sp.x,sp.y,jr);
+    jg.addColorStop(0,col(R.grayHi,bz));jg.addColorStop(.6,col(R.gray,bz));jg.addColorStop(1,col(R.grayDk,bz));
+    g.beginPath();g.arc(sp.x,sp.y,jr,0,Math.PI*2);g.fillStyle=jg;g.fill();
+  });
+}
+
+// ── 로봇 팔 ──
+function drawRobotArm(sh,el,wr){
+  const shP=pj(sh),elP=pj(el),wrP=pj(wr);
+  const armR=d3(sh,el)*.11*sc;
+
+  // 상완 캡슐
+  drawRobotLimb(sh,el,armR,armR*.85,R.gray,R.grayHi,R.grayLo,R.grayDk);
+
+  // 팔꿈치 관절구
+  const eR=armR*.9;
+  const ejg=g.createRadialGradient(elP.x-eR*.2,elP.y-eR*.2,0,elP.x,elP.y,eR);
+  ejg.addColorStop(0,col(R.grayHi,el[2]));ejg.addColorStop(.5,col(R.gray,el[2]));ejg.addColorStop(1,col(R.grayDk,el[2]));
+  g.beginPath();g.arc(elP.x,elP.y,eR,0,Math.PI*2);g.fillStyle=ejg;g.fill();
+  // 관절 링
+  g.beginPath();g.arc(elP.x,elP.y,eR*.7,0,Math.PI*2);
+  g.strokeStyle=`rgba(255,255,255,${.08*zB(el[2])})`;g.lineWidth=1;g.stroke();
+
+  // 전완
+  drawRobotLimb(el,wr,armR*.85,armR*.65,R.gray,R.grayHi,R.grayLo,R.grayDk);
+
+  // 손목 밴드
+  const wR=armR*.7;
+  g.beginPath();g.arc(wrP.x,wrP.y,wR,0,Math.PI*2);
+  g.strokeStyle=col(R.accent,wr[2]);g.lineWidth=2.5;g.stroke();
+}
+
+function drawRobotLimb(a,b,rA,rB,base,hi,lo,dk){
+  const pa=pj(a),pb=pj(b),az=(a[2]+b[2])/2,zs=zS(az);
+  const rpA=rA*zs,rpB=rB*zs;
+  const an=Math.atan2(pb.y-pa.y,pb.x-pa.x),pp=an+Math.PI/2;
+  const cp=Math.cos(pp),sp2=Math.sin(pp);
+
+  g.beginPath();
+  g.moveTo(pa.x+cp*rpA,pa.y+sp2*rpA);g.lineTo(pb.x+cp*rpB,pb.y+sp2*rpB);
+  g.arc(pb.x,pb.y,rpB,pp,pp+Math.PI);
+  g.lineTo(pa.x-cp*rpA,pa.y-sp2*rpA);g.arc(pa.x,pa.y,rpA,pp+Math.PI,pp+Math.PI*2);
+  g.closePath();
+
+  const mr=Math.max(rpA,rpB),mx=(pa.x+pb.x)/2,my=(pa.y+pb.y)/2;
+  const lg=g.createLinearGradient(mx-cp*mr*1.2,my-sp2*mr*1.2,mx+cp*mr*1.2,my+sp2*mr*1.2);
+  lg.addColorStop(0,col(dk,az));lg.addColorStop(.2,col(lo,az));lg.addColorStop(.45,col(base,az));
+  lg.addColorStop(.55,col(hi,az));lg.addColorStop(.75,col(base,az));lg.addColorStop(.9,col(lo,az));lg.addColorStop(1,col(dk,az));
+  g.fillStyle=lg;g.fill();
+}
+
+// ── 로봇 손 ──
+function drawRobotHand(hp,color){
+  if(!hp||hp.length<21)return;
+  const[cr,cg2,cb]=h2r(color),az=hp[0][2],b=zB(az);
+
+  // 손바닥 (넓게)
+  const pi=[0,1,5,9,13,17];
+  g.beginPath();pi.forEach((i,idx)=>{const p=pj(hp[i]);idx===0?g.moveTo(p.x,p.y):g.lineTo(p.x,p.y);});g.closePath();
+  const w=pj(hp[0]);
+  const pg=g.createRadialGradient(w.x,w.y,0,w.x,w.y,45*sc*zS(az));
+  pg.addColorStop(0,col(R.grayHi,az));pg.addColorStop(.5,col(R.gray,az));pg.addColorStop(1,col(R.grayLo,az));
+  g.fillStyle=pg;g.fill();
+  // 손바닥 안쪽 추가
+  const pi2=[0,5,6,10,14,18,17];
+  g.beginPath();pi2.forEach((i,idx)=>{const p=pj(hp[i]);idx===0?g.moveTo(p.x,p.y):g.lineTo(p.x,p.y);});g.closePath();
+  g.fillStyle=col(R.gray,az);g.fill();
+
+  // 손가락 (연결된 소시지 형태 — 실제 손가락처럼)
+  const baseR=d3(hp[0],hp[9])*.154;
+  [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16],[17,18,19,20]].forEach((f,fi)=>{
+    const isThumb=fi===0;
+    // 각 관절의 화면 좌표와 폭
+    const pts=f.map((idx,j)=>{
+      const p=pj(hp[idx]);
+      const wFactor=isThumb?[.9,.8,.65,.5]:[1,.88,.72,.5];
+      return{x:p.x,y:p.y,z:hp[idx][2],r:baseR*(wFactor[j]||.5)*sc*zS(hp[idx][2])};
+    });
+
+    // 한쪽 외곽선 (왼편) 계산
+    const leftSide=[],rightSide=[];
+    for(let j=0;j<pts.length-1;j++){
+      const a=pts[j],b2=pts[j+1];
+      const ang=Math.atan2(b2.y-a.y,b2.x-a.x);
+      const pp=ang+Math.PI/2;
+      const cx=Math.cos(pp),sx2=Math.sin(pp);
+      leftSide.push({x:a.x+cx*a.r,y:a.y+sx2*a.r});
+      if(j===pts.length-2)leftSide.push({x:b2.x+cx*b2.r,y:b2.y+sx2*b2.r});
+      rightSide.push({x:a.x-cx*a.r,y:a.y-sx2*a.r});
+      if(j===pts.length-2)rightSide.push({x:b2.x-cx*b2.r,y:b2.y-sx2*b2.r});
+    }
+
+    // 연결된 path 그리기
+    const tip=pts[pts.length-1];
+    g.beginPath();
+    // 시작: 첫 관절 둥근 캡
+    const startAng=Math.atan2(pts[1].y-pts[0].y,pts[1].x-pts[0].x)+Math.PI/2;
+    g.arc(pts[0].x,pts[0].y,pts[0].r,startAng,startAng+Math.PI);
+    // 왼쪽 외곽선 따라 내려감 (부드럽게)
+    for(let j=0;j<leftSide.length;j++){
+      if(j===0)g.lineTo(leftSide[j].x,leftSide[j].y);
+      else{
+        const prev=leftSide[j-1],cur=leftSide[j];
+        g.quadraticCurveTo(prev.x+(cur.x-prev.x)*.5,prev.y+(cur.y-prev.y)*.5,cur.x,cur.y);
+      }
+    }
+    // 끝: 손가락 끝 둥근 캡
+    const tipAng=Math.atan2(tip.y-pts[pts.length-2].y,tip.x-pts[pts.length-2].x)+Math.PI/2;
+    g.arc(tip.x,tip.y,tip.r,tipAng-Math.PI,tipAng);
+    // 오른쪽 외곽선 따라 올라옴 (역순)
+    for(let j=rightSide.length-1;j>=0;j--){
+      if(j===rightSide.length-1)g.lineTo(rightSide[j].x,rightSide[j].y);
+      else{
+        const prev=rightSide[j+1],cur=rightSide[j];
+        g.quadraticCurveTo(prev.x+(cur.x-prev.x)*.5,prev.y+(cur.y-prev.y)*.5,cur.x,cur.y);
+      }
+    }
+    g.closePath();
+
+    // 그라데이션: 세로축 기준 원통형 음영
+    const avgZ=f.reduce((s,idx)=>s+hp[idx][2],0)/f.length;
+    const midX=(pts[0].x+tip.x)/2,midY=(pts[0].y+tip.y)/2;
+    const fAng=Math.atan2(tip.y-pts[0].y,tip.x-pts[0].x)+Math.PI/2;
+    const maxR=pts[0].r;
+    const fg=g.createLinearGradient(midX-Math.cos(fAng)*maxR*1.3,midY-Math.sin(fAng)*maxR*1.3,midX+Math.cos(fAng)*maxR*1.3,midY+Math.sin(fAng)*maxR*1.3);
+    fg.addColorStop(0,col(R.grayDk,avgZ));fg.addColorStop(.2,col(R.grayLo,avgZ));
+    fg.addColorStop(.45,col(R.gray,avgZ));fg.addColorStop(.55,col(R.grayHi,avgZ));
+    fg.addColorStop(.8,col(R.grayLo,avgZ));fg.addColorStop(1,col(R.grayDk,avgZ));
+    g.fillStyle=fg;g.fill();
+
+    // 손가락 끝 하이라이트
+    const tR=tip.r*.8;
+    const tg2=g.createRadialGradient(tip.x-tR*.2,tip.y-tR*.2,0,tip.x,tip.y,tR*1.2);
+    tg2.addColorStop(0,col(R.whiteHi,tip.z));tg2.addColorStop(.5,col(R.white,tip.z));tg2.addColorStop(1,'rgba(0,0,0,0)');
+    g.beginPath();g.arc(tip.x,tip.y,tR*1.2,0,Math.PI*2);g.fillStyle=tg2;g.fill();
+  });
+
+  // 손목 색상 링
+  g.beginPath();g.arc(w.x,w.y,8*zS(az),0,Math.PI*2);
+  g.strokeStyle=`rgba(${cr},${cg2},${cb},${.5*b})`;g.lineWidth=2.5;
+  if(FX.core){g.shadowColor=color;g.shadowBlur=10;}
+  g.stroke();g.shadowBlur=0;
+
+  if(FX.num)hp.forEach((pt,i)=>{const p=pj(pt);g.fillStyle='rgba(255,255,255,.4)';g.font='7px JetBrains Mono';g.fillText(i,p.x+4,p.y-3);});
+}
+
+// ═══════════════════════════════════════
+//  스켈레톤
+// ═══════════════════════════════════════
+function drawSkel(f){
+  const p=f.pose;
+  PC.forEach(([a,b])=>{if(!p[a]||!p[b])return;const pa=pj(p[a]),pb=pj(p[b]),az=(p[a][2]+p[b][2])/2,br=zB(az);
+    if(FX.core){g.shadowColor=`rgba(60,255,192,${br})`;g.shadowBlur=8;}
+    g.beginPath();g.moveTo(pa.x,pa.y);g.lineTo(pb.x,pb.y);g.strokeStyle=`rgba(60,255,192,${br*.8})`;g.lineWidth=2*zS(az);g.lineCap='round';g.stroke();g.shadowBlur=0;});
+  [0,2,3,4,5,6,7,8].forEach(i=>{if(!p[i])return;const pp=pj(p[i]),b=zB(p[i][2]),s=zS(p[i][2]);
+    if(FX.core){g.shadowColor=`rgba(60,255,192,${b})`;g.shadowBlur=12;}
+    g.beginPath();g.arc(pp.x,pp.y,4*s,0,Math.PI*2);g.fillStyle=`rgba(60,255,192,${b})`;g.fill();g.shadowBlur=0;
+    if(FX.num){g.fillStyle='rgba(255,255,255,.5)';g.font='8px JetBrains Mono';g.fillText(i,pp.x+6,pp.y-4);}});
+  if(f.face)f.face.forEach(pt=>{const p2=pj(pt);g.beginPath();g.arc(p2.x,p2.y,1*zS(pt[2]),0,Math.PI*2);g.fillStyle=`rgba(255,208,107,${zB(pt[2])*.4})`;g.fill();});
+  [['#5c9cf5',f.right_hand],['#f55c8a',f.left_hand]].forEach(([col2,hp])=>{if(!hp||hp.length<21)return;const[r,gg,b]=h2r(col2);
+    HC.forEach(([a,b2])=>{if(!hp[a]||!hp[b2])return;const pa=pj(hp[a]),pb=pj(hp[b2]),br=zB((hp[a][2]+hp[b2][2])/2);g.beginPath();g.moveTo(pa.x,pa.y);g.lineTo(pb.x,pb.y);g.strokeStyle=`rgba(${r},${gg},${b},${br*.7})`;g.lineWidth=4;g.lineCap='round';g.stroke();});
+    hp.forEach((pt,i)=>{const p2=pj(pt),br=zB(pt[2]),s=zS(pt[2]),rd=i===0?7:[4,8,12,16,20].includes(i)?5:3.5;g.beginPath();g.arc(p2.x,p2.y,rd*s,0,Math.PI*2);g.fillStyle=`rgba(${r},${gg},${b},${br})`;g.fill();});});
+}
+
+// Trail
+function drawTr(){trail.forEach((tf,ti)=>{const a=(ti+1)/trail.length*.15;const dr=(pts,r,gg,b)=>{if(!pts)return;HC.forEach(([x,y])=>{if(!pts[x]||!pts[y])return;const pa=pj(pts[x]),pb=pj(pts[y]);g.beginPath();g.moveTo(pa.x,pa.y);g.lineTo(pb.x,pb.y);g.strokeStyle=`rgba(${r},${gg},${b},${a})`;g.lineWidth=3;g.lineCap='round';g.stroke();});};if(tf.rh)dr(tf.rh,92,156,245);if(tf.lh)dr(tf.lh,245,92,138);});}
+
+// ═══════════════════════════════════════
+//  UI
+// ═══════════════════════════════════════
+function updUI(i){if(!D)return;const f=String(i).padStart(2,'0'),t=String(D.frames.length-1).padStart(2,'0');document.getElementById('fD').textContent=`${f} / ${t}`;document.getElementById('tF').textContent=`F:${f}`;document.getElementById('sL').value=i;document.getElementById('sV').textContent=i;document.getElementById('pB').style.width=(D.frames.length>1?(i/(D.frames.length-1))*100:0)+'%';}
+function togP(){if(!D)return;pl=!pl;const b=document.getElementById('pBtn');if(pl){b.textContent='⏸ PAUSE';b.classList.add('pause');stTm();}else{b.textContent='▶ PLAY';b.classList.remove('pause');clearInterval(tm);}}
+function stTm(){clearInterval(tm);tm=setInterval(()=>{const f=D.frames[fr];trail.push({lh:[...f.left_hand],rh:[...f.right_hand]});if(trail.length>TL)trail.shift();fr=(fr+1)%D.frames.length;draw(fr);},1000/(10*sp));}
+function step(d){if(!D)return;fr=Math.max(0,Math.min(D.frames.length-1,fr+d));draw(fr);}
+function onSl(v){if(!D)return;fr=parseInt(v);draw(fr);}
+function setSp(s,btn){sp=s;document.querySelectorAll('.spb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');if(pl)stTm();}
+function setV(m,btn){md=m;document.querySelectorAll('.vmb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');if(D)draw(fr);}
+function togFx(k,btn){FX[k]=!FX[k];btn.classList.toggle('on',FX[k]);if(D)draw(fr);}
+function initD(d){D=d;fr=0;trail.length=0;
+  // 퀴즈 모드: 단어 숨기기
+  document.getElementById('wD').textContent='???';
+  document.getElementById('wDs').textContent=`${d.frames.length}프레임 · 3D`;
+  document.getElementById('wM').textContent='???';
+  document.getElementById('wSub').textContent=`동작을 보고 맞춰보세요`;
+  document.getElementById('sL').max=d.frames.length-1;
+  document.getElementById('tS').textContent=`✓ 로드됨`;
+  document.getElementById('tS').classList.add('ok');
+  // 퀴즈 활성화
+  document.getElementById('qInput').disabled=false;
+  document.getElementById('qBtn').disabled=false;
+  document.getElementById('qReplay').disabled=false;
+  document.getElementById('qInput').value='';
+  document.getElementById('qResult').className='quiz-result';
+  document.getElementById('qResult').innerHTML='';
+  document.getElementById('qRetry').style.display='none';
+  document.getElementById('qHint').textContent='동작을 관찰하고 단어를 맞춰보세요';
+  quizAnswered=false;
+  quizAttempts=0;
+  resetDots();
+  calc();draw(0);
+}
+
+// ═══════════════════════════════════════
+//  퀴즈 시스템
+// ═══════════════════════════════════════
+const MAX_ATTEMPTS = 3;
+let quizOk=0,quizNo=0,quizAnswered=false,quizAttempts=0;
+
+function resetDots(){
+  for(let i=1;i<=MAX_ATTEMPTS;i++){
+    const d=document.getElementById('qD'+i);
+    if(d){d.className='attempt-dot';}
+  }
+}
+
+function markDot(attempt, isCorrect){
+  const d=document.getElementById('qD'+attempt);
+  if(d) d.className='attempt-dot '+(isCorrect?'correct':'used');
+}
+
+function replayAnim(){
+  if(!D)return;
+  fr=0;
+  if(!pl){ togP(); }
+  else { clearInterval(tm); stTm(); }
+  document.getElementById('qHint').textContent='동작을 다시 확인하세요 👀';
+  document.getElementById('qInput').focus();
+}
+
+function submitQuiz(){
+  if(!D||quizAnswered)return;
+  const input=document.getElementById('qInput').value.trim();
+  if(!input)return;
+
+  const answer=D.word_name.trim();
+  const correct=input===answer;
+  quizAttempts++;
+  markDot(quizAttempts, correct);
+
+  const res=document.getElementById('qResult');
+
+  if(correct){
+    quizAnswered=true;
+    quizOk++;
+    res.className='quiz-result correct';
+    res.innerHTML=`<span class="emoji">🎉</span>정답입니다!`;
+    document.getElementById('qOk').textContent=quizOk;
+    document.getElementById('qInput').disabled=true;
+    document.getElementById('qBtn').disabled=true;
+    document.getElementById('qRetry').style.display='block';
+    document.getElementById('wD').textContent=answer;
+    document.getElementById('wM').textContent=answer;
+    document.getElementById('wSub').textContent='정답! 🎉';
+  } else if(quizAttempts >= MAX_ATTEMPTS){
+    // 시도 소진 → 정답 공개
+    quizAnswered=true;
+    quizNo++;
+    res.className='quiz-result reveal';
+    res.innerHTML=`<span class="emoji">😔</span>정답 공개<span class="answer">정답: ${answer}</span>`;
+    document.getElementById('qNo').textContent=quizNo;
+    document.getElementById('qInput').disabled=true;
+    document.getElementById('qBtn').disabled=true;
+    document.getElementById('qRetry').style.display='block';
+    document.getElementById('qHint').textContent=`3번 모두 실패했어요`;
+    document.getElementById('wD').textContent=answer;
+    document.getElementById('wM').textContent=answer;
+    document.getElementById('wSub').textContent=`정답: ${answer}`;
+  } else {
+    // 오답 but 시도 남음
+    const remaining = MAX_ATTEMPTS - quizAttempts;
+    res.className='quiz-result wrong';
+    res.innerHTML=`<span class="emoji">❌</span>틀렸어요<span class="answer">남은 기회: ${remaining}번</span>`;
+    document.getElementById('qHint').textContent=`아직 ${remaining}번 더 시도할 수 있어요`;
+    // 입력 초기화 + 흔들기 효과
+    const inp=document.getElementById('qInput');
+    inp.value='';
+    inp.classList.add('shake');
+    setTimeout(()=>inp.classList.remove('shake'),400);
+    inp.focus();
+  }
+}
+
+function retryQuiz(){
+  if(!D)return;
+  quizAnswered=false;
+  quizAttempts=0;
+  resetDots();
+  document.getElementById('qInput').disabled=false;
+  document.getElementById('qBtn').disabled=false;
+  document.getElementById('qInput').value='';
+  document.getElementById('qInput').focus();
+  document.getElementById('qResult').className='quiz-result';
+  document.getElementById('qResult').innerHTML='';
+  document.getElementById('qRetry').style.display='none';
+  document.getElementById('wD').textContent='???';
+  document.getElementById('wM').textContent='???';
+  document.getElementById('wSub').textContent='동작을 보고 맞춰보세요';
+  document.getElementById('qHint').textContent='다시 도전해보세요!';
+  replayAnim();
+}
+
+// Enter키로 제출
+document.getElementById('qInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter')submitQuiz();
+});
+document.getElementById('fI').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{initD(JSON.parse(ev.target.result))}catch{alert('JSON 오류')}};r.readAsText(f);});
+function loadS(){fetch('./processed_avatars_3d_WORD0001.json').then(r=>{if(!r.ok)throw 0;return r.json()}).then(initD).catch(()=>alert('JSON을 같은 폴더에 넣어주세요'));}
+
+// 코어 애니메이션 루프
+(function anim(){requestAnimationFrame(anim);if(D&&!pl){animT+=.02;if(FX.core)draw(fr);}})();
+
+drawBg();
+</script>
+</body>
+</html>
