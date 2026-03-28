@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>교육 | AI 수어 학습 플랫폼</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      font-family: "Arial", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      background: radial-gradient(circle at top, #e0f2fe 0%, #f8fafc 35%, #eef2ff 70%, #ffffff 100%);
+      color: #0f172a;
+    }
+    .background-blur { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+    .blur { position: absolute; border-radius: 50%; filter: blur(60px); }
+    .blur.one { top: 40px; left: 30px; width: 180px; height: 180px; background: rgba(125, 211, 252, 0.28); }
+    .blur.two { right: 40px; top: 120px; width: 240px; height: 240px; background: rgba(165, 180, 252, 0.22); }
+    .blur.three { left: 18%; bottom: 70px; width: 200px; height: 200px; background: rgba(207, 250, 254, 0.30); }
+    .wrapper { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; padding: 28px 20px 60px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; color: #0f172a; }
+    .brand-icon { width: 46px; height: 46px; border-radius: 16px; background: #0ea5e9; color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 10px 20px rgba(14, 165, 233, 0.25); }
+    .brand-text { font-size: 18px; line-height: 1.4; }
+    .nav { display: flex; gap: 12px; flex-wrap: wrap; }
+    .nav a { text-decoration: none; color: #0f172a; background: rgba(255,255,255,0.8); border: 1px solid #e2e8f0; padding: 11px 16px; border-radius: 14px; font-weight: 700; box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06); }
+    .nav a.active { background: #0f172a; color: white; border-color: #0f172a; }
+    .hero { background: rgba(255,255,255,0.78); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.72); border-radius: 32px; box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12); padding: 34px 28px; margin-bottom: 24px; }
+    .badge { display: inline-flex; align-items: center; gap: 8px; background: #e0f2fe; color: #075985; border-radius: 999px; padding: 10px 16px; font-size: 14px; font-weight: 700; margin-bottom: 18px; }
+    h1 { font-size: 42px; line-height: 1.2; font-weight: 900; letter-spacing: -0.03em; max-width: 900px; }
+    .hero p.desc { margin-top: 14px; max-width: 860px; color: #475569; line-height: 1.8; font-size: 18px; }
+    .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 24px; }
+    .stat-card { background: rgba(248,250,252,0.95); border: 1px solid #e2e8f0; border-radius: 20px; padding: 18px; }
+    .stat-label { color: #0369a1; font-size: 14px; font-weight: 800; }
+    .stat-value { margin-top: 8px; font-size: 28px; font-weight: 900; }
+    .stat-sub { margin-top: 6px; color: #64748b; font-size: 14px; line-height: 1.6; }
+    .controls { display: grid; grid-template-columns: 1fr 220px; gap: 14px; margin-bottom: 18px; }
+    .search-box, .jump-box { background: rgba(255,255,255,0.82); border: 1px solid #e2e8f0; border-radius: 18px; padding: 14px 16px; box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06); }
+    .search-box label, .jump-box label { display: block; font-size: 13px; color: #475569; font-weight: 700; margin-bottom: 8px; }
+    .search-box input, .jump-box input { width: 100%; border: 1px solid #cbd5e1; border-radius: 12px; padding: 12px 14px; font-size: 15px; outline: none; }
+    .search-box input:focus, .jump-box input:focus { border-color: #0ea5e9; }
+    .groups { display: grid; gap: 16px; }
+    .group-card { background: rgba(255,255,255,0.84); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.72); border-radius: 24px; box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08); overflow: hidden; }
+    .group-header { width: 100%; border: none; background: transparent; cursor: pointer; padding: 22px; display: flex; align-items: center; justify-content: space-between; gap: 12px; text-align: left; }
+    .group-left h2 { font-size: 24px; line-height: 1.3; font-weight: 900; color: #0f172a; }
+    .group-left p { margin-top: 6px; color: #64748b; line-height: 1.7; }
+    .group-right { display: flex; align-items: center; gap: 10px; }
+    .group-count { min-width: 72px; height: 44px; border-radius: 14px; background: #eff6ff; color: #1d4ed8; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+    .group-arrow { width: 42px; height: 42px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: transform 0.2s ease; }
+    .group-card.open .group-arrow { transform: rotate(180deg); }
+    .group-body { display: none; padding: 0 22px 22px; }
+    .group-card.open .group-body { display: block; }
+    .day-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+    .day-button { width: 100%; border: 1px solid #dbeafe; background: #f8fbff; border-radius: 18px; padding: 14px; cursor: pointer; text-align: left; transition: 0.2s ease; }
+    .day-button:hover { transform: translateY(-2px); box-shadow: 0 12px 20px rgba(14, 165, 233, 0.10); }
+    .day-button.active { background: #0ea5e9; color: white; border-color: #0ea5e9; }
+    .day-button .mini { font-size: 12px; opacity: 0.9; }
+    .day-button .title { margin-top: 6px; font-size: 18px; font-weight: 800; }
+    .day-button .meta { margin-top: 6px; font-size: 13px; color: inherit; opacity: 0.88; line-height: 1.5; }
+    .lesson-panel { margin-top: 18px; background: linear-gradient(135deg, rgba(224,242,254,0.7), rgba(255,255,255,0.90)); border: 1px solid #bae6fd; border-radius: 22px; padding: 20px; display: none; }
+    .lesson-panel.show { display: block; }
+    .lesson-top { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+    .lesson-title { font-size: 28px; font-weight: 900; }
+    .lesson-sub { color: #475569; line-height: 1.7; }
+    .word-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+    .word-card { background: rgba(255,255,255,0.95); border: 1px solid #dbeafe; border-radius: 18px; padding: 16px; }
+    .word-label { font-size: 12px; color: #0369a1; font-weight: 800; }
+    .word-value { margin-top: 8px; font-size: 22px; font-weight: 900; }
+    .word-desc { margin-top: 8px; font-size: 13px; color: #64748b; line-height: 1.6; }
+    @media (max-width: 1100px) { .day-grid, .word-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .stats { grid-template-columns: 1fr; } }
+    @media (max-width: 760px) { h1 { font-size: 32px; } .controls { grid-template-columns: 1fr; } .day-grid, .word-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 520px) { .wrapper { padding: 20px 14px 42px; } .hero { padding: 24px 18px; border-radius: 24px; } .day-grid, .word-grid { grid-template-columns: 1fr; } .lesson-title { font-size: 24px; } .group-header, .group-body { padding-left: 18px; padding-right: 18px; } }
+  </style>
+</head>
+<body>
+  <div class="background-blur">
+    <div class="blur one"></div>
+    <div class="blur two"></div>
+    <div class="blur three"></div>
+  </div>
+  <div class="wrapper">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-icon">🤟</div>
+        <div class="brand-text">AI 수어 학습 플랫폼</div>
+      </div>
+      <div class="nav">
+        <a href="sign_language_homepage.html">홈</a>
+        <a href="education.html" class="active">교육</a>
+        <a href="translation.html">번역</a>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div class="badge">📘 일상생활 중심 수어 학습</div>
+      <h1>교육 페이지</h1>
+      <p class="desc">
+        자주 사용하는 생활 단어를 중심으로 학습할 수 있도록 구성했습니다.
+        5개 단어를 1일차 학습 단위로 묶고, 10일차씩 상위 그룹으로 정리해 원하는 구간만 펼쳐서 볼 수 있게 만들었습니다.
+      </p>
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-label">총 학습 일차</div>
+          <div class="stat-value">600일차</div>
+          <div class="stat-sub">1일차마다 단어 5개씩 학습하도록 구성</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">총 단어 수</div>
+          <div class="stat-value">3000개</div>
+          <div class="stat-sub">일상생활에서 자주 쓰는 단어를 우선 학습</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">상위 묶음</div>
+          <div class="stat-value">60개</div>
+          <div class="stat-sub">1일차~10일차, 11일차~20일차 형식으로 구성</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="controls">
+      <div class="search-box">
+        <label for="searchInput">상위 묶음 검색</label>
+        <input id="searchInput" type="text" placeholder="예: 1일차, 101일차, 591일차" />
+      </div>
+      <div class="jump-box">
+        <label for="jumpInput">일차 바로가기</label>
+        <input id="jumpInput" type="number" min="1" max="600" placeholder="1~600" />
+      </div>
+    </section>
+
+    <section class="groups" id="groups"></section>
+  </div>
+
+  <script>
+    const totalDays = 600;
+    const wordsPerDay = 5;
+    const groupsEl = document.getElementById("groups");
+    const searchInput = document.getElementById("searchInput");
+    const jumpInput = document.getElementById("jumpInput");
+
+    function getWords(day) {
+      const start = (day - 1) * wordsPerDay + 1;
+      return Array.from({ length: wordsPerDay }, (_, idx) => {
+        const num = String(start + idx).padStart(4, "0");
+        return `단어 ${num}`;
+      });
+    }
+
+    function createGroups() {
+      for (let start = 1; start <= totalDays; start += 10) {
+        const end = Math.min(start + 9, totalDays);
+        const groupCard = document.createElement("div");
+        groupCard.className = "group-card";
+        groupCard.dataset.start = start;
+        groupCard.dataset.end = end;
+        groupCard.dataset.label = `${start}일차~${end}일차`;
+
+        const header = document.createElement("button");
+        header.className = "group-header";
+        header.type = "button";
+        header.innerHTML = `
+          <div class="group-left">
+            <h2>${start}일차~${end}일차</h2>
+            <p>${start}일차부터 ${end}일차까지의 학습 목록입니다. 클릭하면 하위 일차가 펼쳐집니다.</p>
+          </div>
+          <div class="group-right">
+            <div class="group-count">10일차</div>
+            <div class="group-arrow">⌃</div>
+          </div>
+        `;
+
+        const body = document.createElement("div");
+        body.className = "group-body";
+
+        const dayGrid = document.createElement("div");
+        dayGrid.className = "day-grid";
+
+        const lessonPanel = document.createElement("div");
+        lessonPanel.className = "lesson-panel";
+
+        for (let day = start; day <= end; day++) {
+          const btn = document.createElement("button");
+          btn.className = "day-button";
+          btn.type = "button";
+          btn.innerHTML = `
+            <div class="mini">학습 단위</div>
+            <div class="title">${day}일차</div>
+            <div class="meta">단어 5개<br />생활 중심 표현 학습</div>
+          `;
+
+          btn.addEventListener("click", () => {
+            const already = btn.classList.contains("active");
+            dayGrid.querySelectorAll(".day-button").forEach(el => el.classList.remove("active"));
+
+            if (already) {
+              lessonPanel.classList.remove("show");
+              lessonPanel.innerHTML = "";
+              return;
+            }
+
+            btn.classList.add("active");
+            renderLesson(lessonPanel, day);
+          });
+
+          dayGrid.appendChild(btn);
+        }
+
+        body.appendChild(dayGrid);
+        body.appendChild(lessonPanel);
+
+        header.addEventListener("click", () => {
+          groupCard.classList.toggle("open");
+        });
+
+        groupCard.appendChild(header);
+        groupCard.appendChild(body);
+        groupsEl.appendChild(groupCard);
+      }
+    }
+
+    function renderLesson(panel, day) {
+      const words = getWords(day);
+      panel.classList.add("show");
+      panel.innerHTML = `
+        <div class="lesson-top">
+          <div>
+            <div class="lesson-title">${day}일차 학습</div>
+            <div class="lesson-sub">해당 일차에서 학습할 단어 5개를 표시합니다. 지금은 구조 확인용 예시 단어가 들어가 있습니다.</div>
+          </div>
+        </div>
+        <div class="word-grid">
+          ${words.map((word, idx) => `
+            <div class="word-card">
+              <div class="word-label">학습 단어 ${idx + 1}</div>
+              <div class="word-value">${word}</div>
+              <div class="word-desc">실제 서비스에서는 여기에 수어 이미지, 설명, 예문, 발음, 학습 버튼 등을 넣을 수 있습니다.</div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function filterGroups() {
+      const query = searchInput.value.trim();
+      const cards = [...document.querySelectorAll(".group-card")];
+      cards.forEach(card => {
+        if (!query) {
+          card.style.display = "";
+          return;
+        }
+        const label = card.dataset.label;
+        const start = card.dataset.start;
+        const end = card.dataset.end;
+        const matched = label.includes(query) || start.includes(query) || end.includes(query);
+        card.style.display = matched ? "" : "none";
+      });
+    }
+
+    function openDay(day) {
+      if (!day || day < 1 || day > 600) return;
+      const groupStart = Math.floor((day - 1) / 10) * 10 + 1;
+      const card = document.querySelector(`.group-card[data-start="${groupStart}"]`);
+      if (!card) return;
+
+      document.querySelectorAll(".group-card").forEach(c => c.classList.remove("open"));
+      card.classList.add("open");
+      card.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      setTimeout(() => {
+        const buttons = [...card.querySelectorAll(".day-button")];
+        const target = buttons.find(btn => btn.querySelector(".title").textContent === `${day}일차`);
+        if (target) target.click();
+      }, 250);
+    }
+
+    searchInput.addEventListener("input", filterGroups);
+    jumpInput.addEventListener("change", () => openDay(Number(jumpInput.value)));
+    jumpInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") openDay(Number(jumpInput.value));
+    });
+
+    createGroups();
+  </script>
+</body>
+</html>
